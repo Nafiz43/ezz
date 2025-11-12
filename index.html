@@ -73,6 +73,7 @@
     .btn{padding:.9rem 1.1rem;border-radius:999px;border:1px solid var(--glass-b);background:var(--glass);color:#e5e7eb;box-shadow:var(--shadow);transition:.2s}
     .btn:hover{transform:translateY(-2px)}
     .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
+    .btn[disabled]{opacity:.6;cursor:not-allowed;transform:none}
     .surface{background:var(--surface);border-radius:var(--radius-lg);padding:var(--s2);border:1px solid rgba(255,255,255,.10)}
     
     /* ====== Sections ====== */
@@ -451,7 +452,7 @@
       <h2 class="section-title reveal" id="contact-title">Contact</h2>
       <p class="section-sub reveal">For collaborations or full portfolios, feel free to reach out.</p>
       <div class="surface reveal">
-        <form action="#" method="post" onsubmit="event.preventDefault(); alert('Thanks, your message has been noted. Replace this with your form endpoint.');">
+        <form id="contact-form" action="https://formsubmit.co/ezanahuda2019@gmail.com" method="post" data-endpoint="https://formsubmit.co/ajax/ezanahuda2019@gmail.com">
           <div class="grid" style="gap:.9rem">
             <div class="row-6">
               <label class="muted" for="name">Name</label>
@@ -466,9 +467,12 @@
               <textarea id="message" name="message" rows="5" placeholder="Tell me a bit about your project…" style="width:100%;padding:1rem 1.1rem;border-radius:14px;border:1px solid var(--glass-b);background:rgba(255,255,255,.06);color:#e5e7eb"></textarea>
             </div>
           </div>
+          <input type="hidden" name="_subject" value="New portfolio inquiry" />
+          <input type="hidden" name="_captcha" value="false" />
           <div style="height:var(--s1)"></div>
-          <button class="btn primary" type="submit">Send Message</button>
-          <span class="muted" style="margin-left:.6rem;font-size:.9rem;">(Replace with your preferred email/form tool.)</span>
+          <button class="btn primary" type="submit" data-label="Send Message">Send Message</button>
+          <span class="muted" style="margin-left:.6rem;font-size:.9rem;">Direct emails welcome at <a href="mailto:Ezanahuda2019@gmail.com">Ezanahuda2019@gmail.com</a>.</span>
+          <div id="contact-status" class="muted" aria-live="polite" role="status" style="margin-top:var(--s1);"></div>
         </form>
       </div>
       <div style="height:var(--s1)"></div>
@@ -488,6 +492,59 @@
   </footer> -->
 
   <script>
+    // Contact form submission handler
+    (function(){
+      const form = document.getElementById('contact-form');
+      if (!form) return;
+      const status = document.getElementById('contact-status');
+      const submitButton = form.querySelector('button[type="submit"]');
+      const defaultLabel = submitButton?.dataset.label || submitButton?.textContent || '';
+      const endpoint = form.dataset.endpoint || form.action;
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Sending…';
+        }
+        if (status) {
+          status.textContent = 'Sending your message…';
+        }
+
+        try {
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { Accept: 'application/json' },
+            body: formData
+          });
+
+          if (response.ok) {
+            form.reset();
+            if (status) {
+              status.textContent = 'Thanks! Your message has been sent successfully.';
+            }
+          } else {
+            const data = await response.json().catch(() => ({}));
+            const message = data?.message || 'Something went wrong. Please email me directly instead.';
+            if (status) {
+              status.textContent = message;
+            }
+          }
+        } catch (error) {
+          if (status) {
+            status.textContent = 'Network error — please try again or email me directly.';
+          }
+        } finally {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = defaultLabel;
+          }
+        }
+      });
+    })();
+
     // Set year
     document.getElementById('y').textContent = new Date().getFullYear();
 
