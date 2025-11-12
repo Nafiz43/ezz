@@ -1,4 +1,4 @@
-# Ezana Huda Portfolio
+# Portfolio
 
 This repository contains the static portfolio website for architectural designer Ezana Huda. The landing page (`index.html`) features:
 
